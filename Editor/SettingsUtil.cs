@@ -12,9 +12,9 @@ namespace HybridCLR.Editor
     public static class SettingsUtil
     {
         public static bool Enable
-        { 
+        {
             get => HybridCLRSettings.Instance.enable;
-            set 
+            set
             {
                 HybridCLRSettings.Instance.enable = value;
                 HybridCLRSettings.Save();
@@ -85,6 +85,14 @@ namespace HybridCLR.Editor
         }
 
         public static List<string> HotUpdateAssemblyFiles => HotUpdateAssemblyNames.Select(dll => dll + ".dll").ToList();
+
+        public static List<string> HotUpdateAndDHEAssemblyNames
+        {
+            get
+            {
+                return HotUpdateAssemblyNames.Concat(HybridCLRSettings.Instance.differentialHybridAssemblies ?? Array.Empty<string>()).ToList();
+            }
+        }
 
         public static List<string> PatchingHotUpdateAssemblyFiles
         {
