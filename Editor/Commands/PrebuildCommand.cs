@@ -19,6 +19,7 @@ namespace HybridCLR.Editor.Commands
             CompileDllCommand.CompileDll(target);
 
             Il2CppDefGeneratorCommand.GenerateIl2CppDef();
+            DifferentialHybridExecutionCommand.GenerateAssemblyList();
 
             // 这几个生成依赖HotUpdateDlls
             LinkGeneratorCommand.GenerateLinkXml(target);

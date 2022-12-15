@@ -18,6 +18,8 @@ namespace HybridCLR.Editor.Il2CppDef
             public string OutputFile { get; set; }
 
             public string UnityVersion { get; set; }
+
+            public string[] DifferentialHybridAssemblyList { get; set; }
         }
 
         private readonly Options _options;
@@ -49,6 +51,9 @@ namespace HybridCLR.Editor.Il2CppDef
                     lines.Add($"#define HYBRIDCLR_UNITY_{ver}_OR_NEW 1");
                 }
             }
+
+            bool enableDHE = _options.DifferentialHybridAssemblyList != null && _options.DifferentialHybridAssemblyList.Length > 0;
+            lines.Add($"#define HYBRIDCLR_ENABLE_DHE {(enableDHE ? 1 : 0)}");
 
             frr.Replace("UNITY_VERSION", string.Join("\n", lines));
 

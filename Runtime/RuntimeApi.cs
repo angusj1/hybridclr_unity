@@ -73,5 +73,30 @@ namespace HybridCLR
         /// <param name="size"></param>
         [DllImport(dllName, EntryPoint = "RuntimeApi_SetInterpreterThreadFrameStackSize")]
         public static extern void SetInterpreterThreadFrameStackSize(int size);
+
+        /// <summary>
+        /// 加载差分混合执行 assembly
+        /// </summary>
+        /// <param name="dllBytes"></param>
+        /// <param name="optionBytes"></param>
+        /// <returns></returns>
+        public static unsafe LoadImageErrorCode LoadDifferentialHybridAssembly(byte[] dllBytes, byte[] optionBytes)
+        {
+#if UNITY_EDITOR
+            return LoadImageErrorCode.OK;
+#else
+            fixed(byte* dllBytesPtr = dllBytes)
+            {
+                fixed(byte* optionBytesPtr = optionBytes)
+                {
+                    return (LoadImageErrorCode)LoadDifferentialHybridAssembly(dllBytesPtr, dllBytes.Length, optionBytesPtr, optionBytes.Length);
+                }
+            }
+#endif
+        }
+
+        [DllImport(dllName, EntryPoint = "RuntimeApi_LoadDifferentialHybridAssembly")]
+        public static extern unsafe int LoadDifferentialHybridAssembly(byte* dllBytes, int dllSize, byte* optionBytesPtr, int optionBytesLength);
+
     }
 }
