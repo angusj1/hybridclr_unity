@@ -80,10 +80,10 @@ namespace HybridCLR.Editor.DHE
                 return false;
             }
 
-            if (!method.IsStatic && !IsMethodSignatureParamTypeEqual(method.DeclaringType.ToTypeSig(), oldMethod.DeclaringType.ToTypeSig()))
-            {
-                return false;
-            }
+            //if (!method.IsStatic && !IsMethodSignatureParamTypeEqual(method.DeclaringType.ToTypeSig(), oldMethod.DeclaringType.ToTypeSig()))
+            //{
+            //    return false;
+            //}
             if (method.GetParamCount() != oldMethod.GetParamCount())
             {
                 return false;
@@ -102,18 +102,33 @@ namespace HybridCLR.Editor.DHE
             return true;
         }
 
-        public bool IsGenericMethodSignatureMatch(MethodDef method, MethodDef oldMethod, GenericArgumentContext gac)
+        private bool IsVirtualMethodOfHierarchyTreeSignatureMatch(MethodDef method, MethodDef oldMethod)
         {
-            if (method.IsStatic != oldMethod.IsStatic)
-            {
-                return false;
-            }
             if (method.GenericParameters.Count != oldMethod.GenericParameters.Count)
             {
                 return false;
             }
+            if (method.GetParamCount() != oldMethod.GetParamCount())
+            {
+                return false;
+            }
+            if (!IsMethodSignatureParamTypeEqual(method.ReturnType, oldMethod.ReturnType))
+            {
+                return false;
+            }
+            for (int i = 1 /* skip this */, n = method.Parameters.Count; i < n; i++)
+            {
+                if (!IsMethodSignatureParamTypeEqual(method.Parameters[i].Type, oldMethod.Parameters[i].Type))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
 
-            if (!method.IsStatic && !IsMethodSignatureParamTypeEqual(method.DeclaringType.ToTypeSig(), MetaUtil.Inflate(oldMethod.DeclaringType.ToTypeSig(), gac)))
+        public bool IsVirtualGenericMethodOfSameHierarchyTreeSignatureMatch(MethodDef method, MethodDef oldMethod, GenericArgumentContext gac)
+        {
+            if (method.GenericParameters.Count != oldMethod.GenericParameters.Count)
             {
                 return false;
             }
@@ -125,7 +140,7 @@ namespace HybridCLR.Editor.DHE
             {
                 return false;
             }
-            for (int i = 0, n = method.Parameters.Count; i < n; i++)
+            for (int i = 1 /* skip this */, n = method.Parameters.Count; i < n; i++)
             {
                 if (!IsMethodSignatureParamTypeEqual(method.Parameters[i].Type, MetaUtil.Inflate(oldMethod.Parameters[i].Type, gac)))
                 {
@@ -219,11 +234,11 @@ namespace HybridCLR.Editor.DHE
             TypeDef genericProtoType = parentType.Type;
             foreach (var m in genericProtoType.Methods)
             {
-                if (!m.IsNewSlot)
+                if (!m.IsNewSlot || m.Name != method.Name)
                 {
                     continue;
                 }
-                if (IsGenericMethodSignatureMatch(method, m, gac))
+                if (IsVirtualGenericMethodOfSameHierarchyTreeSignatureMatch(method, m, gac))
                 {
                     return GetVirtualTableIndex(m);
                 }
@@ -251,11 +266,11 @@ namespace HybridCLR.Editor.DHE
         {
             foreach (var m in parentTypeDef.Methods)
             {
-                if (!m.IsNewSlot)
+                if (!m.IsNewSlot || m.Name != method.Name)
                 {
                     continue;
                 }
-                if (IsMethodSignatureMatch(method, m))
+                if (IsVirtualMethodOfHierarchyTreeSignatureMatch(method, m))
                 {
                     return GetVirtualTableIndex(m);
                 }
@@ -266,6 +281,7 @@ namespace HybridCLR.Editor.DHE
             }
             else
             {
+                Debug.LogError($"FindOverrideMethodSlot fail method:{method} parent:{parentTypeDef}");
                 throw new Exception("not find override method");
             }
         }
