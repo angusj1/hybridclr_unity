@@ -8,7 +8,9 @@ namespace HybridCLR.Runtime
     {
         public const uint Signature = 0xABCDABCD;
 
-        public List<uint> notChangeMethodTokens;
+        public List<uint> ChangedMethodTokens;
+
+        public List<uint> UnchangedStructTokens;
 
         public byte[] Marshal()
         {
@@ -16,8 +18,14 @@ namespace HybridCLR.Runtime
             var writer = new BinaryWriter(stream);
             writer.Write(Signature);
 
-            writer.Write((uint)notChangeMethodTokens.Count);
-            foreach (uint token in notChangeMethodTokens)
+            writer.Write((uint)ChangedMethodTokens.Count);
+            foreach (uint token in ChangedMethodTokens)
+            {
+                writer.Write(token);
+            }
+
+            writer.Write((uint)UnchangedStructTokens.Count);
+            foreach (uint token in UnchangedStructTokens)
             {
                 writer.Write(token);
             }

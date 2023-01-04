@@ -327,7 +327,7 @@ namespace HybridCLR.Editor.DHE
                     }
                     else
                     {
-                        baseType = type.ResolveTypeDefThrow();
+                        baseType = type.BaseType.ResolveTypeDefThrow();
                     }
                     tvti.baseTypeVtableInfo = ComputeClassVirtualTable(baseType, IsDHEModule(baseType.Module));
                     slot = tvti.totalSlotCount;
@@ -430,7 +430,7 @@ namespace HybridCLR.Editor.DHE
             {
                 return false;
             }
-            data.AddRelyOtherMethod(callerData);
+            callerData.AddRelyOtherMethod(data);
             return true;
         }
 

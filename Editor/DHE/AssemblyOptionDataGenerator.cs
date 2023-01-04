@@ -136,17 +136,19 @@ namespace HybridCLR.Editor.DHE
                 AssemblyMeta data = e.Value;
                 string outOptionFile = $"{_options.OutputDir}/{assName}.dhao.bytes";
 
-                var layoutNotChangeTypes = new SortedSet<uint>(data.curMoudle.GetTypes().Where(t => t.IsValueType && !t.IsEnum).Select(t => _types[t])
+                var unchangedStructTokens = new SortedSet<uint>(data.curMoudle.GetTypes().Where(t => t.IsValueType && !t.IsEnum).Select(t => _types[t])
                     .Where(t => t.instanceState == TypeCompareState.MemoryLayoutEqual)
+                    .Where(t => t.type.Methods.Where(m => !m.IsStatic).All(m => _methods[m].state == MethodCompareState.Equal))
                     .Select(t => t.type.MDToken.Raw)).ToList();
-                var logicNotChangeMethods = new SortedSet<uint>(data.methods.Where(m => m.state == MethodCompareState.Equal)
+                var changedMethodTokens = new SortedSet<uint>(data.methods.Where(m => m.state == MethodCompareState.NotEqual)
                     .Select(m => m.method.MDToken.Raw)).ToList();
                 var dhaOptions = new DifferentialHybridAssemblyOptions()
                 {
-                    notChangeMethodTokens = logicNotChangeMethods,
+                    ChangedMethodTokens = changedMethodTokens,
+                    UnchangedStructTokens = unchangedStructTokens,
                 };
                 File.WriteAllBytes(outOptionFile, dhaOptions.Marshal());
-                Debug.Log($"[AssemblyOptionDataGenerator] assembly:{data.curMoudle} notChangeTypeCount:{layoutNotChangeTypes.Count} notChangeMethodCount:{logicNotChangeMethods.Count} output:{outOptionFile}");
+                Debug.Log($"[AssemblyOptionDataGenerator] assembly:{data.curMoudle} unchangedTypeCount:{unchangedStructTokens.Count} changedMethodCount:{changedMethodTokens.Count} output:{outOptionFile}");
             }
         }
 
@@ -312,7 +314,7 @@ namespace HybridCLR.Editor.DHE
                     }
                     if (method.state == MethodCompareState.NotEqual)
                     {
-                        //Debug.Log($"change mehtod:{method.method} token:{method.method.MDToken.Raw}");
+                        Debug.Log($"change mehtod:{method.method} token:{method.method.MDToken.Raw}");
                     }
                 }
             }
